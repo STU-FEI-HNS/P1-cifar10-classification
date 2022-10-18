@@ -19,20 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.model_selection import train_test_split
 import random
-from utils import save_plots, SaveBestModel, CnnNet
-
-
-
-def printGrph(params, loss_history, acc_history):
-    plt.plot(np.array(range(1, params['nepochs']  + 1)), loss_history)
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.show()
-
-    plt.plot(np.array(range(1, params['nepochs']  + 1)), acc_history)
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.show()
+from utils import CnnNet
 
 print(f"Is GPU available? {torch.cuda.is_available()}")
 print(f"Number of available devices: {torch.cuda.device_count()}")

@@ -19,20 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.model_selection import train_test_split
 import random
-from utils import save_plots, SaveBestModel, CnnNet
-
-
-
-def printGrph(params, loss_history, acc_history):
-    plt.plot(np.array(range(1, params['nepochs']  + 1)), loss_history)
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.show()
-
-    plt.plot(np.array(range(1, params['nepochs']  + 1)), acc_history)
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.show()
+from utils import CnnNet
 
 print(f"Is GPU available? {torch.cuda.is_available()}")
 print(f"Number of available devices: {torch.cuda.device_count()}")
@@ -106,16 +93,11 @@ for path, class_num in to_be_removed: #odstranovanie nadbytocnych vzoriek
 
 print("Pocet vzoriek po odstranovani: " + str(len(test_dataset.samples)))
 
-
-
 trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuffle=True)
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
 
-
 model = models.alexnet(pretrained=True)
 criterion = torch.nn.CrossEntropyLoss()
-
-print(model)
 
 count_x = 0
 count_y = 0
@@ -139,7 +121,6 @@ from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter('runs/cifar10_' + params['save_path'])
 
 model.classifier[6].out_features = 10
-print(model)
 
 my_net = CnnNet(model, params, trainloader, testloader, device, writer)
 my_net.train(criterion, optimizer)
