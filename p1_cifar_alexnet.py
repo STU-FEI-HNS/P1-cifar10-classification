@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from sklearn.model_selection import train_test_split
 import random
-from utils import save_plots, SaveBestModel
+from utils import save_plots, SaveBestModel, CnnNet
 
 
 
@@ -141,128 +141,8 @@ writer = SummaryWriter('runs/cifar10_' + params['save_path'])
 model.classifier[6].out_features = 10
 print(model)
 
-model = model.to(device)
-
-model.train() #activate training mode
-
-acc_history = []
-loss_history = []
-final_labels = []
-final_predicted = []
-
-save_best_model = SaveBestModel(path=params['save_path'])
-
-for epoch in trange(1, params['nepochs'] + 1, desc="1st loop"):
-    epoch_loss = 0
-    n_batches = len(train_dataset) // params['bsize']
-    correct = 0
-    total = 0
-    accuracy_train = 0
-
-    for step, (images, labels) in enumerate(tqdm(trainloader, desc="Epoch {}/{}".format(epoch, params['nepochs']))):
-
-        images = images.to(device)
-        labels = labels.to(device)
-        
-        # Dopredne sirenie, 
-        # ziskame pravdepodobnosti tried tym, ze posleme do modelu vstupy
-        outputs = model(images)
-
-        # Vypocitame chybu algoritmu       
-        loss = criterion(outputs, labels)
-        
-        # Uspesnost algoritmu
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-        accuracy_train = correct / total
-        epoch_loss += loss.item() 
-        
-        # Je vhodne zavolat zero_grad() pred zavolanim spatneho sirenia 
-        # pre vynulovanie gradientov z predosleho volania loss.backward()
-        optimizer.zero_grad()
-
-        # Spatne sirenie chyby, vypocitaju sa gradienty
-        loss.backward()
-        
-        # Aktualizacia vah pomocou optimalizatora
-        optimizer.step()
-    
-        if (step+1) % n_batches == 0 and step != 0:
-            print(str(step))
-            epoch_loss = epoch_loss / n_batches
-
-            writer.add_scalar(
-                'Training loss',
-                epoch_loss,
-                epoch
-            )
-            writer.add_scalar(
-                'Trainning accuracy',
-                accuracy_train,
-                epoch
-            )
-
-            acc_history.append(accuracy_train)
-            loss_history.append(epoch_loss)
-            print("Epoch {}, Loss {:.6f}, Accuracy {:.2f}% ".format(epoch, epoch_loss, accuracy_train * 100))
-            epoch_loss = 0
-
-            #print(model.layer1[0].conv1.weight[0][0])
-            #print(model.layer2[0].conv1.weight[0][0])
-            #print(model.layer3[0].conv1.weight[0][0])
-        save_best_model(epoch_loss, epoch, model, optimizer, criterion) #To save best model
-        final_predicted += predicted.tolist()
-        final_labels += labels.tolist()
-        torch.cuda.empty_cache()
-
-
-
-writer.add_hparams(
-    {
-    'optimizer': optimizer.__class__.__name__,
-    'lr': params['lr'], 
-    'batch_size': params['bsize']
-    },
-    {
-    'hparam/train/accuracy': accuracy_train,
-    }
-)
-writer.close()
-
-model.eval()  # activate evaulation mode, some layers behave differently
-use_cuda = torch.cuda.is_available()
-if use_cuda:
-    model.cuda()
-total = 0
-correct = 0
-final_labels = []
-final_predicted = []
-for inputs, labels in tqdm(iter(testloader), desc="Full forward pass", total=len(testloader)):
-    if use_cuda:
-        inputs = inputs.cuda()
-        labels = labels.cuda()
-    with torch.no_grad():
-        outputs_batch = model(inputs)
-
-    _, predicted = torch.max(outputs_batch.data, 1)
-    total += labels.size(0)
-    correct += (predicted == labels).sum().item()
-
-    final_predicted += predicted.tolist()
-    final_labels += labels.tolist()
-
-confm = confusion_matrix(final_labels, final_predicted)
-print(confm)
-print('Accuracy of the network on the test images: %0.2f %%' % (100 * correct / total))
-
-writer.flush()
-
-from pretty_confusion_matrix import pp_matrix_from_data
-
-labels = [i for i in range(10)]
-
-pp_matrix_from_data(final_labels, final_predicted, params['save_path'], columns=labels, cmap="gnuplot")
-save_plots(acc_history, loss_history, params['save_path'])
-
+my_net = CnnNet(model, params, trainloader, testloader, device, writer)
+my_net.train(criterion, optimizer)
+my_net.test()
+my_net.printResults()
 

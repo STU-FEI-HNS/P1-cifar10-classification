@@ -6,20 +6,10 @@ Created on Mon Oct 17 17:43:37 2022
 """
 import torch
 import matplotlib.pyplot as plt
-
-import numpy as np
-from sklearn.metrics import confusion_matrix, plot_confusion_matrix
-from torch import nn
-from torch.utils.data import DataLoader
-from torch.utils.data.dataset import Dataset
-from torchvision import models, datasets
-import torchvision.transforms as transforms
-#from tqdm.notebook import trange, tqdm
+from sklearn.metrics import confusion_matrix
 from tqdm import tqdm, trange
-import matplotlib.pyplot as plt
-from scipy.io import loadmat
-from sklearn.model_selection import train_test_split
-import random
+from torch.utils.tensorboard import SummaryWriter
+
 
 
 plt.style.use('ggplot')
@@ -84,11 +74,11 @@ class CnnNet:
     Class for operate the neral network, mainly for training and etsting of model.
     """
     def __init__(
-        self, model, params, trainloader, testloader, device, tb_writer):
+        self, model, params, trainloader, testloader, device):
         self.params = params
         self.model = model
         self.device = device
-        self.writer = tb_writer
+        self.writer = SummaryWriter('runs/cifar10_' + self.params['save_path'])
         self.acc_history = []
         self.loss_history = []
         self.final_labels = []
