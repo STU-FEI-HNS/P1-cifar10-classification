@@ -52,10 +52,10 @@ class CustomCNN3(torch.nn.Module):
         )
 
         self.fc_layers = nn.Sequential(
-            nn.Dropout(0.1),
+            nn.Dropout(0.2),
             nn.Linear(16*20, 32),
             nn.ReLU(),
-            nn.Dropout(0.1),
+            nn.Dropout(0.2),
             nn.Linear(32, 10),
             nn.Softmax()
         )
@@ -79,7 +79,7 @@ print(device)
 
 params = {
     "bsize" : 200,# Batch size during training.
-    'nepochs' : 20,# Number of training epochs.
+    'nepochs' : 100,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 2,
    'save_path':'my_serial_net',
