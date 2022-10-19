@@ -118,12 +118,12 @@ optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 
 from torch.utils.tensorboard import SummaryWriter
 
-writer = SummaryWriter('runs/cifar10_' + params['save_path'])
+
 
 model.fc.out_features = 10 #zmena poctu vystupnych parametrov
 #model.classifier[6].out_features = 10 
 
-my_net = CnnNet(model, params, trainloader, testloader, device, writer)
+my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
 my_net.test()
 my_net.printResults()
