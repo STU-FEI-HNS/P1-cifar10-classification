@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Oct 19 15:20:18 2022
+
+@author: user
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Oct 12 20:33:12 2022
 
 @author: user
@@ -20,6 +27,47 @@ from scipy.io import loadmat
 from sklearn.model_selection import train_test_split
 import random
 from utils import CnnNet
+#img size 32
+
+class CustomCNN3(torch.nn.Module):
+    def __init__(self):
+        super(CustomCNN3, self).__init__()
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(3, 10, kernel_size=3, padding=1),#32x32
+            nn.ReLU(),
+            nn.BatchNorm2d(10),
+            nn.MaxPool2d(kernel_size=2, stride=2),#16x16
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(10, 20, kernel_size=3, padding=1),#16x16
+            nn.ReLU(),
+            nn.BatchNorm2d(20),
+            nn.MaxPool2d(kernel_size=2, stride=2),#8x8
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(20, 20, kernel_size=3, padding = 1),#8x8
+            nn.ReLU(),
+            nn.BatchNorm2d(20),
+            nn.MaxPool2d(kernel_size=2, stride=2),#4x4
+        )
+
+        self.fc_layers = nn.Sequential(
+            nn.Dropout(0.1),
+            nn.Linear(16*20, 32),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(32, 10),
+            nn.Softmax()
+        )
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out = self.conv3(out)
+        
+        out = out.view(x.shape[0], -1)
+        out = self.fc_layers(out)
+        return out
 
 print(f"Is GPU available? {torch.cuda.is_available()}")
 print(f"Number of available devices: {torch.cuda.device_count()}")
@@ -34,7 +82,7 @@ params = {
     'nepochs' : 20,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 2,
-   'save_path':'resnet',
+   'save_path':'my_serial_net',
 }
 
 root_train = 'train'
@@ -97,24 +145,14 @@ print("Pocet vzoriek po odstranovani: " + str(len(test_dataset.samples)))
 trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuffle=True)
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
 
-model = models.resnet18(pretrained=True)
+model = CustomCNN3()
 criterion = torch.nn.CrossEntropyLoss()
 
-count = 0
-freeze_first_n_layers = params['freeze_first_n_layers']
-# freeze backbone layers
-for param in model.children(): 
-    if count < freeze_first_n_layers and len(list(param.parameters())) > 0: # freezing first 3 layers
-        print(param)
-        param.requires_grad_(False)
-        count +=1      
+   
 
 optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 
 from torch.utils.tensorboard import SummaryWriter
-
-model.fc.out_features = 10 #zmena poctu vystupnych parametrov
-#model.classifier[6].out_features = 10 
 
 my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
