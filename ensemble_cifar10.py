@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Oct 17 16:52:42 2022
+Created on Thu Oct 27 16:23:17 2022
 
 @author: user
 """
@@ -30,10 +30,10 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 params = {
-    "bsize" : 100,# Batch size during training.
-    'nepochs' : 50,# Number of training epochs.
-    'lr' : 0.0004,# Learning rate for optimizers
-   'freeze_first_n_layers' : 3,
+    "bsize" : 200,# Batch size during training.
+    'nepochs' : 20,# Number of training epochs.
+    'lr' : 0.0002,# Learning rate for optimizers
+   'freeze_first_n_layers' : 4,
    'save_path':'googlenet',
 }
 
@@ -93,47 +93,20 @@ for path, class_num in to_be_removed: #odstranovanie nadbytocnych vzoriek
 
 print("Pocet vzoriek po odstranovani: " + str(len(test_dataset.samples)))
 
-
-
 trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuffle=True)
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
-
 
 model = models.googlenet(pretrained=True)
 criterion = torch.nn.CrossEntropyLoss()
 
-print(model)
 
-count = 0
-freeze_first_n_layers = params['freeze_first_n_layers']
-# freeze backbone layers
-for param in model.children(): 
-    if count < freeze_first_n_layers and len(list(param.parameters())) > 0: # freezing first 3 layers
-        print(param)
-        param.requires_grad_(False)
-        count +=1   
-        
-
-#optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
-optimizer = torch.optim.AdamW(model.parameters(), lr=params['lr'])
-
-from torch.utils.tensorboard import SummaryWriter
-
-
-
-model.fc.out_features = 10 #zmena poctu vystupnych parametrov
-#model.classifier[6].out_features = 10 
+model.fc.out_features = 10
 
 my_net = CnnNet(model, params, trainloader, testloader, device)
-my_net.train(criterion, optimizer)
 
-torch.save({
-                'epoch': params['nepochs'],
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': criterion,
-                }, 'weights/'+ params['save_path'] +'_final_model.pth')
+my_net.loadWeights('weights/googlenet_final_model.pth')
 
 
 my_net.test()
-my_net.printResults()
+
+

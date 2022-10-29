@@ -34,19 +34,19 @@ params = {
     'nepochs' : 50,# Number of training epochs.
     'lr' : 0.0004,# Learning rate for optimizers
    'freeze_first_n_layers' : 3,
-   'save_path':'googlenet',
+   'save_path':'googlenet_aug',
 }
 
 root_train = 'train'
 root_test = 'test'
 
-NUM_TRAIN_IMAGES = 800
+NUM_TRAIN_IMAGES = 500
 NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
-            #transforms.RandomVerticalFlip(p=0.5),
-            #transforms.RandomHorizontalFlip(p=0.5),
-            #transforms.RandomRotation((0, 360), center=None),    
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation((0, 360), center=None),    
             transforms.Resize(256),                                          
             transforms.ToTensor(),
 

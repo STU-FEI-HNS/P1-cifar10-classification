@@ -205,7 +205,15 @@ class CnnNet:
         labels = [i for i in range(10)]
 
         pp_matrix_from_data(self.final_labels, self.final_predicted, self.params['save_path'], columns=labels, cmap="gnuplot")
+        
         save_plots(self.acc_history, self.loss_history, self.params['save_path'])
+        
+    def loadWeights(self, path):
+        weights = torch.load(path)
+        self.model.load_state_dict(weights["model_state_dict"])
+        
+    
+    
     
     
     
