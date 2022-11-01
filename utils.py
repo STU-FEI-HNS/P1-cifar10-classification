@@ -222,6 +222,9 @@ class CnnNet:
             count += 1
         #print(all_batches)
         #print(len(all_batches))
+        confm = confusion_matrix(self.final_labels, self.final_predicted)
+        print(confm)
+        print('Accuracy of the network on the test images: %0.2f %%' % (100 * self.correct / self.total))
         return(all_batches,self.final_labels)
         #return self.model
     

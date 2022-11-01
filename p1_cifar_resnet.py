@@ -31,7 +31,7 @@ print(device)
 
 params = {
     "bsize" : 200,# Batch size during training.
-    'nepochs' : 20,# Number of training epochs.
+    'nepochs' : 10,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 2,
    'save_path':'resnet',
@@ -40,7 +40,7 @@ params = {
 root_train = 'train'
 root_test = 'test'
 
-NUM_TRAIN_IMAGES = 800
+NUM_TRAIN_IMAGES = 200
 NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
@@ -114,10 +114,18 @@ optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 from torch.utils.tensorboard import SummaryWriter
 
 model.fc = nn.Linear(512,10) #zmena poctu vystupnych parametrov
-#model.classifier[6].out_features = 10 
-
+# model.classifier[6].out_features = 10 
+# model.fc.out_features = 10
 my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
+
+# torch.save({
+#                 'epoch': params['nepochs'],
+#                 'model_state_dict': my_net.model.state_dict(),
+#                 'optimizer_state_dict': optimizer.state_dict(),
+#                 'loss': criterion,
+#                 }, 'weights/'+ params['save_path'] +'_final_model.pth')
+# torch.save(model.state_dict(), 'resnet_final_model.pth')
 my_net.test()
 my_net.printResults()
 

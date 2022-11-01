@@ -99,31 +99,37 @@ testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffl
 #----------------------------model1------------------------------
 model1 = models.resnet18(pretrained=False)
 model1.fc = nn.Linear(512,10) 
+# model1.fc.out_features = 10
 criterion = torch.nn.CrossEntropyLoss()
+# weights = torch.load('weights/resnet_final_model.pth')
+# model1.load_state_dict(weights["model_state_dict"])
 my_net1 = CnnNet(model1, params, trainloader, testloader, device)
 
+
 my_net1.loadWeights('weights/resnet_final_model.pth')
+
 result1,trueclasses = my_net1.test2()
-#my_net1.printResults()
+# my_net1.printResults()
 
 #---------------------------model2-----------------------------
-model2 = models.vgg16(pretrained=False)
+model2 = models.vgg16(pretrained=True)
 model2.classifier[6] = nn.Dropout(0.2) #pridanie dropout vrstvy
 model2.classifier.append(nn.Linear(4096,10))
 
 my_net2 = CnnNet(model2, params, trainloader, testloader, device)
 my_net2.loadWeights('weights/vggnet_final_model.pth')
 result2,_ = my_net2.test2()
-#my_net2.printResults()
+# my_net2.printResults()
 
 #---------------------------model3-----------------------------
-model3 = models.alexnet(pretrained=False)
-model3.classifier[6] = nn.Linear(4096, 10)
+model3 = models.googlenet(pretrained=True)
+#model3.classifier[6] = nn.Linear(4096, 10)
+model3.fc.out_features = 10 
 
 my_net3 = CnnNet(model3, params, trainloader, testloader, device)
-my_net3.loadWeights('weights/alexnet_final_model.pth')
+my_net3.loadWeights('weights/googlenet_final_model.pth')
 result3,_ = my_net3.test2()
-#my_net3.printResults()
+# my_net3.printResults()
 
 #----------------------------Ensemble learning---------------------
 
@@ -142,12 +148,12 @@ softvoting = np.argmax(resultsoft,axis=1)
 result1 = np.floor(result1)
 result2 = np.floor(result2)
 result3 = np.floor(result3)
-print(result1)
+# print(result1)
 
 resulthard = np.add(result1,result2,result3) #spocitanie vah (hard voting)
 hardvoting = np.argmax(resulthard,axis=1)
 
 from pretty_confusion_matrix import pp_matrix_from_data
 labels = [i for i in range(10)]
-pp_matrix_from_data(trueclasses, softvoting, params['save_path'], columns=labels, cmap="gnuplot")
-pp_matrix_from_data(trueclasses, hardvoting, params['save_path'], columns=labels, cmap="gnuplot") 
+pp_matrix_from_data(trueclasses, softvoting, 'soft_voting', columns=labels, cmap="gnuplot")
+pp_matrix_from_data(trueclasses, hardvoting, 'Hard_voting', columns=labels, cmap="gnuplot") 
