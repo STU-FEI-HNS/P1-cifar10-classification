@@ -41,7 +41,7 @@ root_train = 'train'
 root_test = 'test'
 
 NUM_TRAIN_IMAGES = 800
-NUM_TEST_IMAGES = 10
+NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
             #transforms.RandomVerticalFlip(p=0.5),
@@ -131,6 +131,10 @@ result3,_ = my_net3.test2()
 result1 = np.divide(result1,np.amax(result1,axis=1).reshape(-1,1))
 result2 = np.divide(result1,np.amax(result2,axis=1).reshape(-1,1))
 result3 = np.divide(result1,np.amax(result3,axis=1).reshape(-1,1))
+result1 = result1.clip(min=0)
+result2 = result1.clip(min=0)
+result3 = result1.clip(min=0)
+
 
 resultsoft = np.add(result1,result2,result3) #spocitanie vah (soft voting)
 softvoting = np.argmax(resultsoft,axis=1)
@@ -138,11 +142,12 @@ softvoting = np.argmax(resultsoft,axis=1)
 result1 = np.floor(result1)
 result2 = np.floor(result2)
 result3 = np.floor(result3)
+print(result1)
 
 resulthard = np.add(result1,result2,result3) #spocitanie vah (hard voting)
 hardvoting = np.argmax(resulthard,axis=1)
 
 from pretty_confusion_matrix import pp_matrix_from_data
 labels = [i for i in range(10)]
-pp_matrix_from_data(softvoting, trueclasses, params['save_path'], columns=labels, cmap="gnuplot")
-pp_matrix_from_data(hardvoting, trueclasses, params['save_path'], columns=labels, cmap="gnuplot")
+pp_matrix_from_data(trueclasses, softvoting, params['save_path'], columns=labels, cmap="gnuplot")
+pp_matrix_from_data(trueclasses, hardvoting, params['save_path'], columns=labels, cmap="gnuplot") 
