@@ -119,10 +119,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 from torch.utils.tensorboard import SummaryWriter
 
 
-model.classifier[6].out_features = 10
+model.classifier[6] = nn.Linear(4096, 10)
 
 my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
 my_net.test()
 my_net.printResults()
-

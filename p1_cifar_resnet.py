@@ -113,7 +113,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 
 from torch.utils.tensorboard import SummaryWriter
 
-model.fc.out_features = 10 #zmena poctu vystupnych parametrov
+model.fc = nn.Linear(512,10) #zmena poctu vystupnych parametrov
 #model.classifier[6].out_features = 10 
 
 my_net = CnnNet(model, params, trainloader, testloader, device)

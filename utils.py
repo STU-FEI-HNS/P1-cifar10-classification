@@ -5,6 +5,7 @@ Created on Mon Oct 17 17:43:37 2022
 @author: user
 """
 import torch
+import numpy
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm, trange
@@ -156,7 +157,7 @@ class CnnNet:
                 self.final_predicted += predicted.tolist()
                 self.final_labels += labels.tolist()
                 torch.cuda.empty_cache()
-
+        self.save_best_model(-9999999, epoch, self.model, optimizer, criterion)
         self.writer.add_hparams(
             {
             'optimizer': optimizer.__class__.__name__,
@@ -192,6 +193,37 @@ class CnnNet:
             self.final_labels += labels.tolist()
         return self.model
     
+    def test2(self):
+        all_batches = []
+        self.model.eval()  # activate evaulation mode, some layers behave differently
+        use_cuda = torch.cuda.is_available()
+        if use_cuda:
+            self.model.cuda()
+        self.final_labels = []
+        self.final_predicted = []
+        count = 0
+        for inputs, labels in tqdm(iter(self.testloader), desc="Full forward pass", total=len(self.testloader)):
+            if use_cuda:
+                inputs = inputs.cuda()
+                labels = labels.cuda()
+            with torch.no_grad():
+                outputs_batch = self.model(inputs)
+            if (count == 0):
+                all_batches = outputs_batch.data.detach().cpu().numpy()
+            else:
+                all_batches = numpy.concatenate((all_batches,outputs_batch.data.detach().cpu().numpy()),axis=0)
+            _, predicted = torch.max(outputs_batch.data, 1)
+
+            self.total += labels.size(0)
+            self.correct += (predicted == labels).sum().item()
+
+            self.final_predicted += predicted.tolist()
+            self.final_labels += labels.tolist()
+            count += 1
+        #print(all_batches)
+        #print(len(all_batches))
+        return(all_batches,self.final_labels)
+        #return self.model
     
     def printResults(self):
         confm = confusion_matrix(self.final_labels, self.final_predicted)

@@ -30,18 +30,18 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 params = {
-    "bsize" : 200,# Batch size during training.
+    "bsize" : 50,# Batch size during training.
     'nepochs' : 20,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 4,
-   'save_path':'googlenet',
+   'save_path':'ensemblenet',
 }
 
 root_train = 'train'
 root_test = 'test'
 
 NUM_TRAIN_IMAGES = 800
-NUM_TEST_IMAGES = 200
+NUM_TEST_IMAGES = 10
 
 transformation = transforms.Compose([ 
             #transforms.RandomVerticalFlip(p=0.5),
@@ -96,17 +96,53 @@ print("Pocet vzoriek po odstranovani: " + str(len(test_dataset.samples)))
 trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuffle=True)
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
 
-model = models.googlenet(pretrained=True)
+#----------------------------model1------------------------------
+model1 = models.resnet18(pretrained=False)
+model1.fc = nn.Linear(512,10) 
 criterion = torch.nn.CrossEntropyLoss()
+my_net1 = CnnNet(model1, params, trainloader, testloader, device)
 
+my_net1.loadWeights('weights/resnet_final_model.pth')
+result1,trueclasses = my_net1.test2()
+#my_net1.printResults()
 
-model.fc.out_features = 10
+#---------------------------model2-----------------------------
+model2 = models.vgg16(pretrained=False)
+model2.classifier[6] = nn.Dropout(0.2) #pridanie dropout vrstvy
+model2.classifier.append(nn.Linear(4096,10))
 
-my_net = CnnNet(model, params, trainloader, testloader, device)
+my_net2 = CnnNet(model2, params, trainloader, testloader, device)
+my_net2.loadWeights('weights/vggnet_final_model.pth')
+result2,_ = my_net2.test2()
+#my_net2.printResults()
 
-my_net.loadWeights('weights/googlenet_final_model.pth')
+#---------------------------model3-----------------------------
+model3 = models.alexnet(pretrained=False)
+model3.classifier[6] = nn.Linear(4096, 10)
 
+my_net3 = CnnNet(model3, params, trainloader, testloader, device)
+my_net3.loadWeights('weights/alexnet_final_model.pth')
+result3,_ = my_net3.test2()
+#my_net3.printResults()
 
-my_net.test()
+#----------------------------Ensemble learning---------------------
 
+#normalizacia na rozsah 0-1
+result1 = np.divide(result1,np.amax(result1,axis=1).reshape(-1,1))
+result2 = np.divide(result1,np.amax(result2,axis=1).reshape(-1,1))
+result3 = np.divide(result1,np.amax(result3,axis=1).reshape(-1,1))
 
+resultsoft = np.add(result1,result2,result3) #spocitanie vah (soft voting)
+softvoting = np.argmax(resultsoft,axis=1)
+
+result1 = np.floor(result1)
+result2 = np.floor(result2)
+result3 = np.floor(result3)
+
+resulthard = np.add(result1,result2,result3) #spocitanie vah (hard voting)
+hardvoting = np.argmax(resulthard,axis=1)
+
+from pretty_confusion_matrix import pp_matrix_from_data
+labels = [i for i in range(10)]
+pp_matrix_from_data(softvoting, trueclasses, params['save_path'], columns=labels, cmap="gnuplot")
+pp_matrix_from_data(hardvoting, trueclasses, params['save_path'], columns=labels, cmap="gnuplot")

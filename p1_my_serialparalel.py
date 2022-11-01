@@ -43,18 +43,36 @@ class CustomCNN3(torch.nn.Module):
             nn.Conv2d(3, 5, kernel_size=5, padding=2),#32x32
             nn.ReLU(),
             nn.BatchNorm2d(5),
+            nn.Conv2d(5, 5, kernel_size=7, padding=3),#32x32
+            nn.ReLU(),
+            nn.BatchNorm2d(5),
             nn.MaxPool2d(kernel_size=2, stride=2),#16x16
         )
         self.conv1b = nn.Sequential(
             nn.Conv2d(3, 5, kernel_size=3, padding=1),#32x32
             nn.ReLU(),
             nn.BatchNorm2d(5),
+            nn.Conv2d(5, 5, kernel_size=5, padding=2),#32x32
+            nn.ReLU(),
+            nn.BatchNorm2d(5),
             nn.MaxPool2d(kernel_size=2, stride=2),#16x16
         )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(10, 20, kernel_size=3, padding=1),#16x16
+        self.conv2a = nn.Sequential(
+            nn.Conv2d(10, 10, kernel_size=3, padding=1),#16x16
             nn.ReLU(),
-            nn.BatchNorm2d(20),
+            nn.BatchNorm2d(10),
+            nn.Conv2d(10, 10, kernel_size=3, padding=1),#16x16
+            nn.ReLU(),
+            nn.BatchNorm2d(10),
+            nn.MaxPool2d(kernel_size=2, stride=2),#8x8
+        )
+        self.conv2b = nn.Sequential(
+            nn.Conv2d(10, 10, kernel_size=7, padding=3),#16x16
+            nn.ReLU(),
+            nn.BatchNorm2d(10),
+            nn.Conv2d(10, 10, kernel_size=5, padding=2),#16x16
+            nn.ReLU(),
+            nn.BatchNorm2d(10),
             nn.MaxPool2d(kernel_size=2, stride=2),#8x8
         )
         self.conv3 = nn.Sequential(
@@ -66,10 +84,13 @@ class CustomCNN3(torch.nn.Module):
 
         self.fc_layers = nn.Sequential(
             nn.Dropout(0.2),
-            nn.Linear(16*20, 32),
+            nn.Linear(16*20, 64),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(32, 10),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(64, 10),
             nn.Softmax()
         )
 
@@ -79,7 +100,9 @@ class CustomCNN3(torch.nn.Module):
         out_b = self.conv1b(x)
         #print(out_a.size())
         out = torch.cat((out_a, out_b), axis=1)
-        out = self.conv2(out)
+        out_a = self.conv2a(out)
+        out_b = self.conv2b(out)
+        out = torch.cat((out_a, out_b), axis=1)
         out = self.conv3(out)
         
         out = out.view(x.shape[0], -1)
@@ -96,7 +119,7 @@ print(device)
 
 params = {
     "bsize" : 200,# Batch size during training.
-    'nepochs' : 100,# Number of training epochs.
+    'nepochs' : 200,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 2,
    'save_path':'my_serialparallel_net',
