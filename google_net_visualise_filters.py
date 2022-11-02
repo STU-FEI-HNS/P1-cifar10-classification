@@ -47,10 +47,7 @@ NUM_TRAIN_IMAGES = 100
 NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
-            # transforms.RandomVerticalFlip(p=0.5),
-            # transforms.RandomHorizontalFlip(p=0.5),
-            # transforms.RandomRotation((0, 360), center=None),   
-            # transforms.AutoAugment(AutoAugmentPolicy.CIFAR10),
+
             transforms.Resize(256),                                          
             transforms.ToTensor(),
 
@@ -122,31 +119,17 @@ for param in model.children():
         param.requires_grad_(False)
         count +=1   
         
-
-#optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
 optimizer = torch.optim.AdamW(model.parameters(), lr=params['lr'])
 
 from torch.utils.tensorboard import SummaryWriter
 
-
-
-model.fc.out_features = 10 #zmena poctu vystupnych parametrov
-#model.classifier[6].out_features = 10 
+model = models.googlenet(pretrained=True)
+model.fc.out_features = 10
 
 my_net = CnnNet(model, params, trainloader, testloader, device)
-my_net.train(criterion, optimizer)
+my_net.loadWeights('weights/googlenet_final_model.pth')
 
-# torch.save({
-#                 'epoch': params['nepochs'],
-#                 'model_state_dict': model.state_dict(),
-#                 'optimizer_state_dict': optimizer.state_dict(),
-#                 'loss': criterion,
-#                 }, 'weights/'+ params['save_path'] +'_final_model.pth')
-
-
-my_net.test()
-my_net.printResults()
-
+#------------------Zobrazenie filtrov pre Conv1, Conv2, Conv3---------------------
 from torchvision import utils, models
 import matplotlib.pyplot as plt
 
@@ -161,15 +144,41 @@ def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
   plt.figure( figsize=(nrow,rows) )
   plt.imshow(grid.numpy().transpose((1, 2, 0)))
 
-
-#model = models.resnet18(pretrained=True)
-# print(model)
-
 filter1 = my_net.model.conv1.conv.weight.data.clone().cpu()
 filter2 = my_net.model.conv2.conv.weight.data.clone().cpu()
 filter3 = my_net.model.conv3.conv.weight.data.clone().cpu()
 
-# print(filter)
 visTensor(filter1, ch=0, allkernels=False)
 visTensor(filter2, ch=0, allkernels=False)
 visTensor(filter3, ch=0, allkernels=False)
+
+
+#------------------Pokus o zobrazenie feature map---------------------
+#Pre test som to ribil pre conv1 ale asi to treba spraviť pre nejakú 
+#hlbšiu vrstvulebo v zadaní je že výstupnú mapu príznakoc
+
+
+# model_weights =  my_net.model.conv1.conv.weight;
+
+# images = next(iter(trainloader))
+# images = images.cuda()
+# image_b = images[0]
+# image = image_b[0]
+
+# image = image.to(device)
+# outputs = []
+# names = []
+
+# image = my_net.model.conv1.conv(image)
+
+# print(len(image))
+
+# image = image.squeeze(0)
+# gray_scale = torch.sum(image,0)
+# gray_scale = gray_scale / image.shape[0]
+# image_new = gray_scale.data.cpu().numpy()
+
+# fig = plt.figure(figsize=(32, 32))
+# imgplot = plt.imshow(image_new)
+# plt.axis("off")
+

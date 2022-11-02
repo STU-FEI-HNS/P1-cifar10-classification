@@ -111,13 +111,14 @@ testloader_google = DataLoader(dataset=test_dataset_google, batch_size=params['b
 model1 = models.resnet18(pretrained=True)
 model1.fc = nn.Linear(512,10) 
 # model1.fc.out_features = 10
+# model1.classifier[6] = nn.Linear(4096, 10)
 criterion = torch.nn.CrossEntropyLoss()
 # weights = torch.load('weights/resnet_final_model.pth')
 # model1.load_state_dict(weights["model_state_dict"])
 my_net1 = CnnNet(model1, params, testloader, testloader, device)
 
 
-# my_net1.loadWeights('weights/resnet_final_model.pth')
+# my_net1.loadWeights('weights/alexnet_final_model.pth')
 
 
 my_net1.model.load_state_dict(torch.load('resnet_final_model1.pth'))
