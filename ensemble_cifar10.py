@@ -137,22 +137,23 @@ result2,_ = my_net2.test2()
 #---------------------------model3-----------------------------
 model3 = models.googlenet(pretrained=True)
 #model3.classifier[6] = nn.Linear(4096, 10)
-model3.fc.out_features = 10 
+model3.fc.out_features = 10
 
 my_net3 = CnnNet(model3, params, testloader_google, testloader_google, device)
 my_net3.loadWeights('weights/googlenet_final_model.pth')
 result3,_ = my_net3.test2()
+result3 = result3[:,:10]
 # my_net3.printResults()
 
 #----------------------------Ensemble learning---------------------
 
 #normalizacia na rozsah 0-1
 result1 = np.divide(result1,np.amax(result1,axis=1).reshape(-1,1))
-result2 = np.divide(result1,np.amax(result2,axis=1).reshape(-1,1))
-result3 = np.divide(result1,np.amax(result3,axis=1).reshape(-1,1))
+result2 = np.divide(result2,np.amax(result2,axis=1).reshape(-1,1))
+result3 = np.divide(result3,np.amax(result3,axis=1).reshape(-1,1))
 result1 = result1.clip(min=0)
-result2 = result1.clip(min=0)
-result3 = result1.clip(min=0)
+result2 = result2.clip(min=0)
+result3 = result3.clip(min=0)
 
 
 resultsoft = np.add(result1,result2,result3) #spocitanie vah (soft voting)
