@@ -119,13 +119,8 @@ model.fc = nn.Linear(512,10) #zmena poctu vystupnych parametrov
 my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
 
-# torch.save({
-#                 'epoch': params['nepochs'],
-#                 'model_state_dict': my_net.model.state_dict(),
-#                 'optimizer_state_dict': optimizer.state_dict(),
-#                 'loss': criterion,
-#                 }, 'weights/'+ params['save_path'] +'_final_model.pth')
-# torch.save(model.state_dict(), 'resnet_final_model.pth')
+torch.save(my_net.model.state_dict(), 'resnet_final_model1.pth')
+
 my_net.test()
 my_net.printResults()
 

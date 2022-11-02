@@ -47,7 +47,7 @@ transformation = transforms.Compose([
             #transforms.RandomVerticalFlip(p=0.5),
             #transforms.RandomHorizontalFlip(p=0.5),
             #transforms.RandomRotation((0, 360), center=None),    
-            transforms.Resize(256),                                          
+            # transforms.Resize(256),                                          
             transforms.ToTensor(),
 
     ])
@@ -97,7 +97,7 @@ trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuf
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
 
 #----------------------------model1------------------------------
-model1 = models.resnet18(pretrained=False)
+model1 = models.resnet18(pretrained=True)
 model1.fc = nn.Linear(512,10) 
 # model1.fc.out_features = 10
 criterion = torch.nn.CrossEntropyLoss()
@@ -106,8 +106,10 @@ criterion = torch.nn.CrossEntropyLoss()
 my_net1 = CnnNet(model1, params, trainloader, testloader, device)
 
 
-my_net1.loadWeights('weights/resnet_final_model.pth')
+# my_net1.loadWeights('weights/resnet_final_model.pth')
 
+
+my_net1.model.load_state_dict(torch.load('resnet_final_model1.pth'))
 result1,trueclasses = my_net1.test2()
 # my_net1.printResults()
 
@@ -155,5 +157,5 @@ hardvoting = np.argmax(resulthard,axis=1)
 
 from pretty_confusion_matrix import pp_matrix_from_data
 labels = [i for i in range(10)]
-pp_matrix_from_data(trueclasses, softvoting, 'soft_voting', columns=labels, cmap="gnuplot")
+pp_matrix_from_data(trueclasses, softvoting, 'Soft_voting', columns=labels, cmap="gnuplot")
 pp_matrix_from_data(trueclasses, hardvoting, 'Hard_voting', columns=labels, cmap="gnuplot") 

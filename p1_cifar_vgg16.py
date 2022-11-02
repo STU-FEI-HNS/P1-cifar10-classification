@@ -114,12 +114,12 @@ from torch.utils.tensorboard import SummaryWriter
 my_net = CnnNet(model, params, trainloader, testloader, device)
 my_net.train(criterion, optimizer)
 
-torch.save({
-                'epoch': params['nepochs'],
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': criterion,
-                }, 'weights/'+ params['save_path'] +'_final_model.pth')
+# torch.save({
+#                 'epoch': params['nepochs'],
+#                 'model_state_dict': model.state_dict(),
+#                 'optimizer_state_dict': optimizer.state_dict(),
+#                 'loss': criterion,
+#                 }, 'weights/'+ params['save_path'] +'_final_model.pth')
 
 my_net.test()
 my_net.printResults()
