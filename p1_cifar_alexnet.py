@@ -33,7 +33,7 @@ params = {
     "bsize" : 200,# Batch size during training.
     'nepochs' : 20,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
-   'freeze_first_n_layers' : 4,
+   'freeze_first_n_layers' : 2,
    'save_path':'alexnet',
 }
 

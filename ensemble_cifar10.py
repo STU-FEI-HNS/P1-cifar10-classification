@@ -43,6 +43,18 @@ root_test = 'test'
 NUM_TRAIN_IMAGES = 800
 NUM_TEST_IMAGES = 200
 
+
+transformation_google = transforms.Compose([ 
+            #transforms.RandomVerticalFlip(p=0.5),
+            #transforms.RandomHorizontalFlip(p=0.5),
+            #transforms.RandomRotation((0, 360), center=None),    
+            transforms.Resize(256),                                          
+            transforms.ToTensor(),
+
+    ])
+
+test_dataset_google = datasets.ImageFolder(root=root_test, transform=transformation_google)
+
 transformation = transforms.Compose([ 
             #transforms.RandomVerticalFlip(p=0.5),
             #transforms.RandomHorizontalFlip(p=0.5),
@@ -52,27 +64,7 @@ transformation = transforms.Compose([
 
     ])
 
-train_dataset = datasets.ImageFolder(root=root_train, transform=transformation)
 test_dataset = datasets.ImageFolder(root=root_test, transform=transformation)
-
-
-# -------------- Odstranenie nadbytocnych vzoriek trenovacie data -----------------------
-random.shuffle(train_dataset.samples) #nahodne zamiesanie
-number_of_samples = [0]*len(train_dataset.classes)
-to_be_removed = []
-print("Trenovacie data")
-print("Povodny pocet vzoriek: " + str(len(train_dataset.samples))) 
-
-for path, class_num in train_dataset.samples:  #hladanie nadbytocnych vzoriek
-  if (number_of_samples[class_num] >= NUM_TRAIN_IMAGES):
-    to_be_removed.append((path,class_num))
-  else:
-    number_of_samples[class_num] += 1
-
-for path, class_num in to_be_removed: #odstranovanie nadbytocnych vzoriek
-  train_dataset.samples.remove((path,class_num))
-
-print("Pocet vzoriek po odstranovani: " + str(len(train_dataset.samples)) + "\n")
 
 
 # -------------- Odstranenie nadbytocnych vzoriek testovacie data -----------------------
@@ -93,8 +85,27 @@ for path, class_num in to_be_removed: #odstranovanie nadbytocnych vzoriek
 
 print("Pocet vzoriek po odstranovani: " + str(len(test_dataset.samples)))
 
-trainloader = DataLoader(dataset=train_dataset, batch_size=params['bsize'], shuffle=True)
 testloader = DataLoader(dataset=test_dataset, batch_size=params['bsize'], shuffle=False)
+
+# -------------- Odstranenie nadbytocnych vzoriek testovacie data Google-----------------------
+random.shuffle(test_dataset_google.samples) #nahodne zamiesanie
+number_of_samples = [0]*len(test_dataset_google.classes)
+to_be_removed = []
+print("Testovacie data")
+print("Povodny pocet vzoriek: " + str(len(test_dataset_google.samples))) 
+
+for path, class_num in test_dataset_google.samples:  #hladanie nadbytocnych vzoriek
+  if (number_of_samples[class_num] >= NUM_TEST_IMAGES):
+    to_be_removed.append((path,class_num))
+  else:
+    number_of_samples[class_num] += 1
+
+for path, class_num in to_be_removed: #odstranovanie nadbytocnych vzoriek
+  test_dataset_google.samples.remove((path,class_num))
+
+print("Pocet vzoriek po odstranovani: " + str(len(test_dataset_google.samples)))
+
+testloader_google = DataLoader(dataset=test_dataset_google, batch_size=params['bsize'], shuffle=False)
 
 #----------------------------model1------------------------------
 model1 = models.resnet18(pretrained=True)
@@ -103,7 +114,7 @@ model1.fc = nn.Linear(512,10)
 criterion = torch.nn.CrossEntropyLoss()
 # weights = torch.load('weights/resnet_final_model.pth')
 # model1.load_state_dict(weights["model_state_dict"])
-my_net1 = CnnNet(model1, params, trainloader, testloader, device)
+my_net1 = CnnNet(model1, params, testloader, testloader, device)
 
 
 # my_net1.loadWeights('weights/resnet_final_model.pth')
@@ -118,7 +129,7 @@ model2 = models.vgg16(pretrained=True)
 model2.classifier[6] = nn.Dropout(0.2) #pridanie dropout vrstvy
 model2.classifier.append(nn.Linear(4096,10))
 
-my_net2 = CnnNet(model2, params, trainloader, testloader, device)
+my_net2 = CnnNet(model2, params, testloader, testloader, device)
 my_net2.loadWeights('weights/vggnet_final_model.pth')
 result2,_ = my_net2.test2()
 # my_net2.printResults()
@@ -128,7 +139,7 @@ model3 = models.googlenet(pretrained=True)
 #model3.classifier[6] = nn.Linear(4096, 10)
 model3.fc.out_features = 10 
 
-my_net3 = CnnNet(model3, params, trainloader, testloader, device)
+my_net3 = CnnNet(model3, params, testloader_google, testloader_google, device)
 my_net3.loadWeights('weights/googlenet_final_model.pth')
 result3,_ = my_net3.test2()
 # my_net3.printResults()

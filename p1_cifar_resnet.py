@@ -31,7 +31,7 @@ print(device)
 
 params = {
     "bsize" : 200,# Batch size during training.
-    'nepochs' : 10,# Number of training epochs.
+    'nepochs' : 20,# Number of training epochs.
     'lr' : 0.0002,# Learning rate for optimizers
    'freeze_first_n_layers' : 2,
    'save_path':'resnet',
@@ -40,7 +40,7 @@ params = {
 root_train = 'train'
 root_test = 'test'
 
-NUM_TRAIN_IMAGES = 200
+NUM_TRAIN_IMAGES = 800
 NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
