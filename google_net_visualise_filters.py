@@ -29,7 +29,8 @@ print(f"Number of available devices: {torch.cuda.device_count()}")
 print(f"Index of current device: {torch.cuda.current_device()}")
 print(f"Device name: {torch.cuda.get_device_name(torch.cuda.current_device())}")
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 print(device)
 
 params = {
@@ -47,7 +48,6 @@ NUM_TRAIN_IMAGES = 100
 NUM_TEST_IMAGES = 200
 
 transformation = transforms.Compose([ 
-
             transforms.Resize(256),                                          
             transforms.ToTensor(),
 
@@ -55,7 +55,6 @@ transformation = transforms.Compose([
 transformation_test = transforms.Compose([    
             transforms.Resize(256),                                          
             transforms.ToTensor(),
-
     ])
 
 train_dataset = datasets.ImageFolder(root=root_train, transform=transformation)
@@ -158,27 +157,44 @@ visTensor(filter3, ch=0, allkernels=False)
 #hlbšiu vrstvulebo v zadaní je že výstupnú mapu príznakoc
 
 
-# model_weights =  my_net.model.conv1.conv.weight;
+model_weights =  my_net.model.conv1.conv.weight
 
-# images = next(iter(trainloader))
-# images = images.cuda()
-# image_b = images[0]
-# image = image_b[0]
+images = next(iter(trainloader))
+#images = images.cuda()
+image_b = images[0]
+image = image_b[0]
 
-# image = image.to(device)
-# outputs = []
-# names = []
+image = image.to(device)
+outputs = []
+names = []
 
-# image = my_net.model.conv1.conv(image)
+image = my_net.model.conv1.conv(image)
+image2 = my_net.model.conv2.conv(image)
+image3 = my_net.model.conv3.conv(image2)
 
-# print(len(image))
+print(len(image))
 
-# image = image.squeeze(0)
-# gray_scale = torch.sum(image,0)
-# gray_scale = gray_scale / image.shape[0]
-# image_new = gray_scale.data.cpu().numpy()
+image = image.squeeze(0)
+gray_scale = torch.sum(image,0)
+gray_scale = gray_scale / image.shape[0]
+image_new = gray_scale.data.cpu().numpy()
+fig = plt.figure(figsize=(32, 32))
+imgplot = plt.imshow(image_new)
 
-# fig = plt.figure(figsize=(32, 32))
-# imgplot = plt.imshow(image_new)
-# plt.axis("off")
+image2 = image2.squeeze(0)
+gray_scale = torch.sum(image2,0)
+gray_scale = gray_scale / image2.shape[0]
+image2_new = gray_scale.data.cpu().numpy()
+fig = plt.figure(figsize=(32, 32))
+imgplot = plt.imshow(image2_new)
 
+
+image3 = image3.squeeze(0)
+gray_scale = torch.sum(image3,0)
+gray_scale = gray_scale / image3.shape[0]
+image3_new = gray_scale.data.cpu().numpy()
+fig = plt.figure(figsize=(32, 32))
+imgplot = plt.imshow(image3_new)
+
+plt.axis("off")
+plt.show()
